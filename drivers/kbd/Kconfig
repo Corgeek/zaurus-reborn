@@ -1,0 +1,21 @@
+# Copyright (c) 2026 Takayuki Goto <tkg.develop@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+
+config DRV_KBD
+    bool "Text from Zaurus C3x00 key events"
+    depends on INPUT
+    help
+      Turns INPUT_EV_KEY events into characters and VT100 sequences,
+      following the keycaps of the Sharp Zaurus C3x00 keyboard, where
+      the symbols sit on Shift and Fn rather than on keys of their own.
+
+if DRV_KBD
+
+config DRV_KBD_FN_KEY
+    int "Key code of the Fn modifier"
+    default 61
+    help
+      Input key code that acts as Fn. 61 is INPUT_KEY_F3, which Linux's
+      spitz keymap and the board's keymap give the Fn key.
+
+endif # DRV_KBD

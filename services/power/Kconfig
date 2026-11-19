@@ -1,0 +1,19 @@
+# Copyright (c) 2026 Takayuki Goto <tkg.develop@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+
+config SVC_POWER
+    bool "Power service"
+    depends on HAS_POWEROFF && INPUT
+    select POWEROFF
+    help
+      Powers the machine off when the power key is held, or on the
+      poweroff shell command. The boot loader starts it again on the
+      power key.
+
+if SVC_POWER
+
+config SVC_POWER_KEY_HOLD_MS
+    int "Power key hold time to power off, in milliseconds"
+    default 1000
+
+endif # SVC_POWER

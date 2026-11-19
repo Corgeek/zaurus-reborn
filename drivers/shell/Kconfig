@@ -1,0 +1,23 @@
+# Copyright (c) 2026 Takayuki Goto <tkg.develop@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+
+config DRV_SHELL
+    bool "Shell on the terminal and a keyboard"
+    depends on SHELL && INPUT && DRV_TERM
+    select DRV_KBD
+    help
+      Shell backend that prints on the terminal (and the UART
+      console, when there is one) and reads key events from the input
+      subsystem, with the Zaurus C3x00 keycap layout for symbols.
+
+if DRV_SHELL
+
+config DRV_SHELL_PROMPT
+    string "Prompt"
+    default "zaurus:~$ "
+
+config DRV_SHELL_RX_BUF_SIZE
+    int "Input buffer size"
+    default 64
+
+endif # DRV_SHELL
