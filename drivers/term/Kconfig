@@ -1,0 +1,48 @@
+# Copyright (c) 2026 Takayuki Goto <tkg.develop@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+
+DT_CHOSEN_Z_DISPLAY := zephyr,display
+
+menuconfig DRV_TERM
+    bool "Terminal on the display"
+    depends on DISPLAY
+    depends on $(dt_chosen_enabled,$(DT_CHOSEN_Z_DISPLAY))
+    select CHARACTER_FRAMEBUFFER
+    select UART_CONSOLE_DEBUG_SERVER_HOOKS if UART_CONSOLE
+    help
+      Show printk(), stdout and log output on the zephyr,display, which
+      has to expose an RGB565 framebuffer. With the UART console enabled
+      the output goes to both.
+
+if DRV_TERM
+
+config DRV_TERM_ROTATION
+    int "Text rotation against the panel, in degrees clockwise"
+    range 0 270
+    default 0
+    help
+      0, 90, 180 or 270. With 90, the top of the text faces the panel's
+      right edge: for a portrait panel mounted on its side.
+
+config DRV_TERM_FONT_HEIGHT
+    int "Font height in pixels"
+    default 16
+    help
+      Height of the character framebuffer font to use. The smallest
+      available font is used when none has this height.
+
+config DRV_TERM_LOG_BACKEND
+    bool "Log backend"
+    default y
+    depends on LOG && !LOG_MODE_MINIMAL
+    help
+      Show log messages on the display as well. In minimal log mode they
+      go through printk() and appear without this.
+
+config DRV_TERM_INIT_PRIORITY
+    int "Init priority"
+    default 90
+    help
+      POST_KERNEL priority, after the display and its panel drivers.
+
+endif # DRV_TERM

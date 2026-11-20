@@ -3,10 +3,18 @@
 
 cmake_minimum_required(VERSION 3.20.0)
 
+## Main Process
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
 project(Zaurus)
 
+target_include_directories(app PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
 target_sources(app PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/main.c
 )
+
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/drivers)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/services)
