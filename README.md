@@ -34,6 +34,31 @@ Sharp Zaurus SL-C3200 向けのビルド済み Zephyr RTOS イメージです。
 
 kexecboot のメニューに戻るには電源を入れ直してください。
 
+### ソースからのビルド
+
+このリポジトリは Zephyr のアプリケーションです。`main` ブランチは緑 LED を点滅させるだけの最小構成で、
+サンプルは `main` から分岐した `samples/<名前>` ブランチにあります。
+
+| ブランチ | 内容 |
+|---|---|
+| `main` | 緑 LED の点滅 |
+| `samples/lcd_terminal` | LCD とキーボードで使う Zephyr shell。電源キー長押しで電源 OFF |
+| `samples/usbh_ble_beacon` | USB の Bluetooth ドングル (CSR8510 など) で BLE の広告を受信し、RSSI から推定した距離を LCD に棒グラフで表示 |
+
+Zephyr SDK と west を用意して、次のようにビルドします。zephyr は `west.yml` に書かれた
+[Corgeek/zephyr-rtos](https://github.com/Corgeek/zephyr-rtos) のブランチから取得します。
+
+```
+mkdir zaurus-ws && cd zaurus-ws
+git clone https://github.com/Corgeek/zaurus-reborn.git zaurus
+git -C zaurus switch samples/lcd_terminal    # main のままなら LED の点滅
+west init -l zaurus
+west update
+west build -b zaurus_sl_c3200 zaurus
+```
+
+`build/zephyr/zephyr.bin` を kexecboot から起動します。ブランチを切り替えたら `west update` と `west build -p` をやり直してください。
+
 ## English
 
 Prebuilt Zephyr RTOS images for the Sharp Zaurus SL-C3200, booted from an SD card via kexecboot.
@@ -69,6 +94,31 @@ Requirements: SD card of 2 GB or less (non-SDHC, FAT), AC adapter, microdrive le
 | `hw_check` | Green / orange LED blink |
 
 Power cycle to return to the kexecboot menu.
+
+### Build from source
+
+This repository is a Zephyr application. The `main` branch is the smallest one, blinking the green LED;
+the samples are on `samples/<name>` branches, each started from `main`.
+
+| Branch | Description |
+|---|---|
+| `main` | Green LED blink |
+| `samples/lcd_terminal` | Zephyr shell on the LCD and keyboard; hold the power key to power off |
+| `samples/usbh_ble_beacon` | Receives BLE advertisements with a USB Bluetooth dongle (CSR8510 or similar) and shows the distance estimated from the RSSI as bars on the LCD |
+
+With the Zephyr SDK and west installed, build as below. zephyr comes from the branch of
+[Corgeek/zephyr-rtos](https://github.com/Corgeek/zephyr-rtos) named in `west.yml`.
+
+```
+mkdir zaurus-ws && cd zaurus-ws
+git clone https://github.com/Corgeek/zaurus-reborn.git zaurus
+git -C zaurus switch samples/lcd_terminal    # stay on main for the LED blink
+west init -l zaurus
+west update
+west build -b zaurus_sl_c3200 zaurus
+```
+
+Boot `build/zephyr/zephyr.bin` from kexecboot. After switching branches, run `west update` and `west build -p` again.
 
 ## License
 

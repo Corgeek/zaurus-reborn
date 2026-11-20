@@ -1,0 +1,20 @@
+manifest:
+  defaults:
+    remote: corgeek
+
+  remotes:
+    - name: corgeek
+      url-base: https://github.com/Corgeek
+
+  projects:
+    - name: zephyr
+      repo-path: zephyr-rtos
+      path: zephyr
+      remote: corgeek
+      revision: zaurus
+      clone-depth: 1
+      west-commands: scripts/west-commands.yml
+      import:
+        name-allowlist:
+          - fatfs
+          - lvgl

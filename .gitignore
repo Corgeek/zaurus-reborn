@@ -1,0 +1,7 @@
+# Build output
+build/
+
+# Editors
+*.swp
+*.swo
+.vscode/settings.json
