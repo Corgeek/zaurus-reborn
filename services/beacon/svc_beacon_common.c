@@ -325,7 +325,11 @@ int svc_beacon_start(void)
     int ret;
 
     ret = bt_enable(NULL);
-    if (ret != 0) {
+    if (ret == -ENODEV) {
+        /* No controller yet: the caller tries again */
+        LOG_DBG("No Bluetooth controller");
+        return ret;
+    } else if (ret != 0) {
         LOG_ERR("Bluetooth enable failed (%d)", ret);
         return ret;
     }
