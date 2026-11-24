@@ -19,8 +19,12 @@ extern "C" {
  *
  * The text goes to the display only, not to the UART. A subset of VT100
  * control sequences is interpreted: cursor movement and positioning
- * (CSI A, B, C, D, H, f), erasing (CSI J, K) and saving and restoring the
- * cursor (ESC 7, ESC 8). Other sequences are skipped.
+ * (CSI A, B, C, D, H, f), erasing (CSI J, K), saving and restoring the
+ * cursor (ESC 7, ESC 8), hiding and showing the cursor (CSI ? 25 l, h) and
+ * the alternate screen (CSI ? 1049 h, l). Other sequences are skipped.
+ *
+ * While the alternate screen is up, printk(), stdout and log output are not
+ * shown, so that a full-screen view drawn with this function stays intact.
  *
  * @param buf Text to write
  * @param len Number of bytes in @p buf

@@ -23,6 +23,13 @@
  * movement and positioning, erasing, and saving the cursor. The cursor is
  * shown as an inverted cell. Other escape sequences, such as colours, are
  * skipped.
+ *
+ * For full-screen views like top, the xterm alternate screen (CSI ? 1049 h
+ * and l) and cursor hiding (CSI ? 25 l and h) are understood too. While the
+ * alternate screen is up, printk(), stdout and log output stay off the
+ * display, so that only drv_term_write() draws there; leaving it brings
+ * back the text and the cursor as they were. A log panic (a fatal error, or
+ * a power off) leaves it as well, so that the error shows.
  */
 
 #include <errno.h>
@@ -68,6 +75,9 @@ enum esc_state {
     ESC_NONE,
     ESC_START,
     ESC_CSI,
+    /* CSI ? ...: DEC private modes */
+    ESC_CSI_DEC,
+    /* CSI > ... and CSI = ...: ignored */
     ESC_CSI_PRIVATE,
 };
 
@@ -94,8 +104,14 @@ struct drv_term_state {
     enum esc_state esc;
     uint8_t nparams;
     bool cursor_drawn;
+    bool cursor_hidden;
     bool ready;
+    /* The alternate screen is up; main_* hold the normal one */
+    bool alt;
+    uint16_t main_col;
+    uint16_t main_row;
     uint8_t cells[MAX_CELLS];
+    uint8_t main_cells[MAX_CELLS];
 };
 
 static struct drv_term_state term;
@@ -200,6 +216,10 @@ static void drv_term_hidecursor(void)
 
 static void drv_term_showcursor(void)
 {
+    if (term.cursor_hidden) {
+        return;
+    }
+
     term.cursor_col = MIN(term.col, term.cols - 1U);
     term.cursor_row = term.row;
     drv_term_drawcell(term.cursor_col, term.cursor_row, true);
@@ -324,6 +344,59 @@ static void drv_term_csifinal(uint8_t c)
     }
 }
 
+/* Switch to the alternate screen, or back to the normal one */
+static void drv_term_altscreen(bool on)
+{
+    size_t ncells = (size_t)term.rows * term.cols;
+
+    if (on == term.alt) {
+        return;
+    }
+
+    if (on) {
+        memcpy(term.main_cells, term.cells, ncells);
+        term.main_col = term.col;
+        term.main_row = term.row;
+        term.col = 0U;
+        term.row = 0U;
+        drv_term_erase(0U, ncells - 1U);
+    } else {
+        memcpy(term.cells, term.main_cells, ncells);
+        term.col = term.main_col;
+        term.row = term.main_row;
+        for (uint16_t row = 0U; row < term.rows; row++) {
+            for (uint16_t col = 0U; col < term.cols; col++) {
+                drv_term_drawcell(col, row, false);
+            }
+        }
+    }
+
+    term.alt = on;
+}
+
+/* CSI ? n h and CSI ? n l */
+static void drv_term_decfinal(uint8_t c)
+{
+    bool set = (c == 'h');
+
+    if (c != 'h' && c != 'l') {
+        return;
+    }
+
+    for (uint8_t i = 0U; i < MIN(term.nparams, MAX_PARAMS); i++) {
+        switch (term.params[i]) {
+        case 25U:
+            term.cursor_hidden = !set;
+            break;
+        case 1049U:
+            drv_term_altscreen(set);
+            break;
+        default:
+            break;
+        }
+    }
+}
+
 static void drv_term_putlocked(uint8_t c)
 {
     switch (term.esc) {
@@ -342,6 +415,7 @@ static void drv_term_putlocked(uint8_t c)
         }
         return;
     case ESC_CSI:
+    case ESC_CSI_DEC:
     case ESC_CSI_PRIVATE:
         if (c >= '0' && c <= '9') {
             if (term.nparams == 0U) {
@@ -354,12 +428,15 @@ static void drv_term_putlocked(uint8_t c)
             }
         } else if (c == ';') {
             term.nparams = (term.nparams == 0U) ? 2U : (term.nparams + 1U);
-        } else if (c == '?' || c == '>' || c == '=') {
+        } else if (c == '?') {
+            term.esc = ESC_CSI_DEC;
+        } else if (c == '>' || c == '=') {
             term.esc = ESC_CSI_PRIVATE;
         } else if (c >= 0x40U && c <= 0x7eU) {
-            /* Private modes (cursor visibility and the like) are ignored */
             if (term.esc == ESC_CSI) {
                 drv_term_csifinal(c);
+            } else if (term.esc == ESC_CSI_DEC) {
+                drv_term_decfinal(c);
             }
             term.esc = ESC_NONE;
         }
@@ -403,7 +480,8 @@ static void drv_term_putlocked(uint8_t c)
     }
 }
 
-void drv_term_write(const char *buf, size_t len)
+/* Console output (printk, stdout, log) is dropped while the alternate screen is up */
+static void drv_term_output(const char *buf, size_t len, bool console)
 {
     k_spinlock_key_t key;
 
@@ -412,12 +490,21 @@ void drv_term_write(const char *buf, size_t len)
     }
 
     key = k_spin_lock(&term_lock);
+    if (console && term.alt) {
+        k_spin_unlock(&term_lock, key);
+        return;
+    }
     drv_term_hidecursor();
     for (size_t i = 0U; i < len; i++) {
         drv_term_putlocked((uint8_t)buf[i]);
     }
     drv_term_showcursor();
     k_spin_unlock(&term_lock, key);
+}
+
+void drv_term_write(const char *buf, size_t len)
+{
+    drv_term_output(buf, len, false);
 }
 
 int drv_term_size(uint16_t *cols, uint16_t *rows)
@@ -440,7 +527,7 @@ static void drv_term_putchar(uint8_t c)
 {
     char ch = (char)c;
 
-    drv_term_write(&ch, 1U);
+    drv_term_output(&ch, 1U, true);
 }
 
 #ifdef CONFIG_UART_CONSOLE
@@ -467,7 +554,7 @@ static int drv_term_logout(uint8_t *data, size_t length, void *ctx)
 {
     ARG_UNUSED(ctx);
 
-    drv_term_write((const char *)data, length);
+    drv_term_output((const char *)data, length, true);
 
     return (int)length;
 }
@@ -486,7 +573,22 @@ static void drv_term_logprocess(const struct log_backend *const backend, union l
 
 static void drv_term_logpanic(const struct log_backend *const backend)
 {
+    k_spinlock_key_t key;
+
     ARG_UNUSED(backend);
+
+    /*
+     * A fatal error or a power off: back to the normal screen, so that
+     * what comes now is seen rather than dropped
+     */
+    key = k_spin_lock(&term_lock);
+    if (term.ready) {
+        drv_term_hidecursor();
+        drv_term_altscreen(false);
+        term.cursor_hidden = false;
+        drv_term_showcursor();
+    }
+    k_spin_unlock(&term_lock, key);
 
     log_backend_std_panic(&drv_term_logoutput);
 }
