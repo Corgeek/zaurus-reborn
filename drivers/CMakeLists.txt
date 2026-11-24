@@ -4,3 +4,4 @@
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/kbd)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/shell)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/term)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/usbh)

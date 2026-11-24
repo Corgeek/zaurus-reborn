@@ -4,3 +4,4 @@
 rsource "kbd/Kconfig"
 rsource "term/Kconfig"
 rsource "shell/Kconfig"
+rsource "usbh/Kconfig"

@@ -1,0 +1,20 @@
+# Copyright (c) 2026 Takayuki Goto <tkg.develop@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+
+config DRV_USBH
+    bool "Enable the USB host at boot"
+    depends on USB_HOST_STACK
+    depends on $(dt_nodelabel_enabled,zephyr_uhc0)
+    help
+      Initializes and enables the USB host stack on the zephyr_uhc0
+      controller at boot.
+
+if DRV_USBH
+
+config DRV_USBH_INIT_PRIORITY
+    int "Init priority"
+    default 0
+    help
+      APPLICATION priority.
+
+endif # DRV_USBH

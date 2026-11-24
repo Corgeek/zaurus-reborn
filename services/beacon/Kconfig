@@ -1,0 +1,58 @@
+# Copyright (c) 2026 Takayuki Goto <tkg.develop@gmail.com>
+# SPDX-License-Identifier: Apache-2.0
+
+config SVC_BEACON
+    bool "Distance to Bluetooth LE advertisers"
+    depends on BT_OBSERVER
+    help
+      Scans for Bluetooth LE advertisers and estimates the distance to
+      each from its smoothed RSSI, with the log-distance path loss model.
+
+if SVC_BEACON
+
+config SVC_BEACON_MAX_DEVICES
+    int "Advertisers tracked at a time"
+    default 32
+    help
+      When the table is full, the advertiser heard from longest ago
+      makes room for a new one.
+
+config SVC_BEACON_TIMEOUT_MS
+    int "Time after which a silent advertiser is dropped, in milliseconds"
+    default 10000
+
+config SVC_BEACON_RSSI_SMOOTHING
+    int "RSSI smoothing divisor"
+    range 1 64
+    default 4
+    help
+      Each advertisement moves the smoothed RSSI by the difference
+      divided by this value: 1 shows the raw RSSI, larger values react
+      more slowly and fluctuate less.
+
+config SVC_BEACON_DEFAULT_TXPOWER
+    int "Expected RSSI at 1 m, in dBm, for uncalibrated advertisers"
+    range -100 0
+    default -59
+    help
+      Used when the advertisement carries neither an iBeacon or
+      Eddystone calibration nor a TX Power Level. -59 dBm is the usual
+      iBeacon figure for a phone-sized transmitter.
+
+config SVC_BEACON_PATH_LOSS_X10
+    int "Path loss exponent, in tenths"
+    range 10 60
+    default 20
+    help
+      n in the log-distance path loss model, times 10: 20 for free
+      space, 25 to 40 indoors with walls and people in the way.
+
+config SVC_BEACON_IMMEDIATE_CM
+    int "Upper limit of the immediate range, in centimeters"
+    default 50
+
+config SVC_BEACON_NEAR_CM
+    int "Upper limit of the near range, in centimeters"
+    default 300
+
+endif # SVC_BEACON

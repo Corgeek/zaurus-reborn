@@ -18,3 +18,4 @@ target_sources(app PRIVATE
 
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/drivers)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/services)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/apps)

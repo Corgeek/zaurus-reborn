@@ -1,0 +1,17 @@
+/*
+ * Copyright (c) 2026 Takayuki Goto <tkg.develop@gmail.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/* Bluetooth through a USB dongle on the USB host port */
+/ {
+    chosen {
+        zephyr,bt-hci = &bt_hci_usbh;
+    };
+
+    bt_hci_usbh: bt-hci-usbh {
+        compatible = "zephyr,bt-hci-usbh";
+        status = "okay";
+    };
+};
