@@ -18,3 +18,5 @@ manifest:
         name-allowlist:
           - fatfs
           - lvgl
+          - mbedtls
+          - tf-psa-crypto
