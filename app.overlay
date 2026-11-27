@@ -1,0 +1,27 @@
+/*
+ * Copyright (c) 2026 Takayuki Goto <tkg.develop@gmail.com>
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+#include <zephyr/dt-bindings/lvgl/lvgl.h>
+
+/*
+ * The keyboard as an LVGL keypad: the cursor keys and the jog dial (F7 down,
+ * F8 up) move the focus, Enter, the OK key (F11) and the jog push (F5)
+ * press the focused button. The key codes come from the keymap under the
+ * matrix, which has no label.
+ */
+/ {
+    app_clock_keypad: app-clock-keypad {
+        compatible = "zephyr,lvgl-keypad-input";
+        input = <&{/kbd-matrix/keymap}>;
+        input-codes = <INPUT_KEY_LEFT INPUT_KEY_UP INPUT_KEY_F8
+                       INPUT_KEY_RIGHT INPUT_KEY_DOWN INPUT_KEY_F7 INPUT_KEY_TAB
+                       INPUT_KEY_ENTER INPUT_KEY_F11 INPUT_KEY_F5>;
+        lvgl-codes = <LV_KEY_PREV LV_KEY_PREV LV_KEY_PREV
+                      LV_KEY_NEXT LV_KEY_NEXT LV_KEY_NEXT LV_KEY_NEXT
+                      LV_KEY_ENTER LV_KEY_ENTER LV_KEY_ENTER>;
+    };
+};

@@ -9,4 +9,13 @@ project(Zaurus)
 
 target_sources(app PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/main.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/app_clock_logo.c
 )
+
+# Revision of this application, shown next to Zephyr's
+include(git)
+git_describe(${CMAKE_CURRENT_SOURCE_DIR} APP_CLOCK_REVISION)
+if(NOT APP_CLOCK_REVISION)
+    set(APP_CLOCK_REVISION "unknown")
+endif()
+target_compile_definitions(app PRIVATE APP_CLOCK_REVISION="${APP_CLOCK_REVISION}")
