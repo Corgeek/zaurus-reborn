@@ -44,6 +44,7 @@ kexecboot のメニューに戻るには電源を入れ直してください。
 | `main` | 緑 LED の点滅 |
 | `samples/lcd_terminal` | LCD とキーボードで使う Zephyr shell。電源キー長押しで電源 OFF |
 | `samples/usbh_ble_beacon` | USB の Bluetooth ドングル (CSR8510 など) で BLE の広告を受信し、RSSI から推定した距離を LCD に棒グラフで表示 |
+| `samples/lvgl_clock` | LVGL のデジタル時計。AM 9:00 から始まり、ボタン (カーソルキー / ジョグと Enter / OK) で時刻を合わせる。時刻は電源を切ると消える |
 
 Zephyr SDK と west を用意して、次のようにビルドします。zephyr は `west.yml` に書かれた
 [Corgeek/zephyr-rtos](https://github.com/Corgeek/zephyr-rtos) のブランチから取得します。
@@ -105,6 +106,7 @@ the samples are on `samples/<name>` branches, each started from `main`.
 | `main` | Green LED blink |
 | `samples/lcd_terminal` | Zephyr shell on the LCD and keyboard; hold the power key to power off |
 | `samples/usbh_ble_beacon` | Receives BLE advertisements with a USB Bluetooth dongle (CSR8510 or similar) and shows the distance estimated from the RSSI as bars on the LCD |
+| `samples/lvgl_clock` | Digital clock on LVGL; starts at 9:00 AM and is set with on-screen buttons (cursor keys or jog dial, Enter or OK); the time is lost at power off |
 
 With the Zephyr SDK and west installed, build as below. zephyr comes from the branch of
 [Corgeek/zephyr-rtos](https://github.com/Corgeek/zephyr-rtos) named in `west.yml`.
